@@ -1,1 +1,3 @@
-from ICONProcessor.py import ICONGrid,ICONDataGrid
+from .ICONProcessor import ICONGrid, ICONDataGrid
+
+__all__ = ["ICONGrid", "ICONDataGrid"]
