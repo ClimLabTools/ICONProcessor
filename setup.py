@@ -5,7 +5,7 @@ setup(
     version="0.1",
     packages=find_packages(),             # auto-detect packages
     license='MIT',
-    python_requires='>=3.11',
+    python_requires='>=3.9',
     install_requires=[
         "geopandas==1.0.1",
         "netcdf4==1.7.2",
