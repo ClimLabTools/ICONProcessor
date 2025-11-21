@@ -1,4 +1,6 @@
 from .ICONDataGrid import ICONDataGrid
+from .ICONInitGrid import ICONInitGrid
+from .ICONCell import ICONCell
 
 import netCDF4 as nc
 import numpy as np
