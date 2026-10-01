@@ -69,6 +69,29 @@ class ICONGrid:
         "#c3c3c3"  # 22
     ]
 
+    # SOILTYP names based on icon_database_main
+    __soiltyp_names = ["ice",
+                       "rock",
+                       "sand",
+                       "sandyloam",
+                       "loam",
+                       "clayloam",
+                       "clay",
+                       "peat",
+                       "seawater"]
+
+    __soiltyp_colors = [
+        "#ffffff",  # 1
+        "#fff5d7",  # 2
+        "#e9e1b0",  # 3
+        "#d7bb71",  # 4
+        "#c49b6e",  # 5
+        "#c16b2d",  # 6
+        "#dd7d52",  # 7
+        "#86573a",  # 8
+        "#0046c8",  # 9
+    ]
+
     @staticmethod
     def save_as_gpkg(gdf, filename, layer):
         gdf.to_file(filename=filename, layer=layer, driver="GPKG")
@@ -83,6 +106,13 @@ class ICONGrid:
     @staticmethod
     def get_lu_colors():
         return ICONGrid.__lu_colors.copy()
+
+    @staticmethod
+    def get_soiltyp_name(soiltyp=None):
+        if soiltyp is None:
+            return ICONGrid.__soiltyp_names.copy()
+        else:
+            return ICONGrid.__soiltyp_names[soiltyp]
 
     @staticmethod
     def rasterize(gdf, vars, res, interpolate=False):
@@ -263,6 +293,53 @@ class ICONGrid:
                    for idx, val in enumerate(self.__lu_class_names)]
 
         legend = ax.legend(handles=handles, title="ICON Land Use Classes",
+                           loc="center left", bbox_to_anchor=(1.0, 0.5), frameon=False)
+
+        ax.set_title(title, fontweight = 'bold')
+        if save_path is not None:
+            plt.savefig(save_path)
+        if show:
+            plt.show()
+
+    def plot_soiltyp(self, title, soiltyp_colors=None, ax=None, outlines=None, outlines_color='black',
+                               show=True, save_path=None):
+
+        soiltyp = self.ds_ext['SOILTYP'][:].data - 1
+
+        if soiltyp_colors is None:
+            soiltyp_colors = self.__soiltyp_colors
+
+        cmap = ListedColormap(soiltyp_colors)
+
+        if ax is None:
+            fig, ax = plt.subplots(figsize=(8, 6), constrained_layout=True)
+
+        # Discrete bins centered on each class value
+        levels = np.arange(-0.5, len(self.__soiltyp_names)+.5, 1)
+
+        # read center lon/lat in radiant
+        clon_rad = self.ds_grid['clon'][:].data  # center longitude  / rad
+        clat_rad = self.ds_grid['clat'][:].data  # center latitutde  / rad
+
+        # convert to degrees
+        clon = np.rad2deg(clon_rad)
+        clat = np.rad2deg(clat_rad)
+
+        # plot actual map
+        tcf = ax.tricontourf(clon, clat, soiltyp, cmap=cmap, levels=levels)
+
+        if outlines is not None:
+            outlines.boundary.plot(ax=ax, linewidth=1, edgecolor=outlines_color, alpha=0.5)
+            ax.set(xlim=(clon.min(), clon.max()), ylim=(clat.min(), clat.max()))
+
+        # Create a legend
+        handles = [plt.Line2D([0], [0],
+                              marker='o', color=soiltyp_colors[idx], linestyle='',
+                              markersize=8, markeredgecolor='black', markeredgewidth=.3,
+                              label=f'{idx+1} - {val}')
+                   for idx, val in enumerate(self.__soiltyp_names)]
+
+        legend = ax.legend(handles=handles, title="ICON SOILTYP",
                            loc="center left", bbox_to_anchor=(1.0, 0.5), frameon=False)
 
         ax.set_title(title, fontweight = 'bold')
